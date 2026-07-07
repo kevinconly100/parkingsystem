@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@theme {
+  --font-orbitron: 'Orbitron', sans-serif;
+}
+
+body {
+  font-family: var(--font-orbitron);
+  background-color: #0a0a0a;
+  color: #e5e5e5;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.neon {
+  box-shadow: 0 0 6px #0ff, 0 0 10px #0ff;
+  border: 1px solid blue;
+}
+
+.neon-glow {
+  text-shadow: 0 0 8px #0ff, 0 0 12px #0ff;
+  color: #0ff;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+}
+
+input, input:focus, input:active {
+  background: #18181b !important;
+  color: #e5e5e5 !important;
+  border: 1px solid #0ff;
+  outline: none;
+  transition: background 0.3s, color 0.3s;
+}
+
+input::placeholder {
+  color: #7dd3fc !important;
+  opacity: 1;
+}
+
+.light-mode input, .light-mode input:focus, .light-mode input:active {
+  background: #fff !important;
+  color: #18181b !important;
+  border: 1px solid #1e40af;
+}
+
+.light-mode input::placeholder {
+  color: #60a5fa !important;
+  opacity: 1;
+}
+
+.light-mode {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+.light-mode .neon {
+  border-color: #1e40af;
+  box-shadow: 0 0 4px #60a5fa;
+  color: #1e40af;
+}
+
+.light-mode .neon-glow {
+  color: #1e40af;
+  text-shadow: 0 0 6px #60a5fa;
+}
+
+.light-mode .bg-gray-900,
+.light-mode .bg-gray-800 {
+  background-color: #fff !important;
+}
+
+.light-mode .divide-gray-700,
+.light-mode .divide-gray-800 {
+  border-color: #e5e7eb !important;
+}
+
+.light-mode table,
+.light-mode th,
+.light-mode td {
+  background-color: #fff !important;
+  color: #111827 !important;
+}
