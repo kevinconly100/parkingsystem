@@ -2,8 +2,8 @@ import { useState, useCallback, type FormEvent } from 'react'
 import { TOTAL_SLOTS, PLATE_REGEX } from '../types'
 
 interface Props {
-  onPark: (plate: string, slot?: string) => boolean
-  onRemove: (plate: string) => boolean
+  onPark: (plate: string, slot?: string) => Promise<boolean>
+  onRemove: (plate: string) => Promise<boolean>
   onClearAll: () => void
 }
 
@@ -15,18 +15,18 @@ export default function ParkingForm({ onPark, onRemove, onClearAll }: Props) {
   const slotValid = slot === '' || (parseInt(slot) >= 1 && parseInt(slot) <= TOTAL_SLOTS)
   const canPark = plateValid && slotValid
 
-  const handlePark = useCallback((e: FormEvent) => {
+  const handlePark = useCallback(async (e: FormEvent) => {
     e.preventDefault()
     if (!canPark) return
-    const ok = onPark(plate, slot)
+    const ok = await onPark(plate, slot)
     if (ok) {
       setPlate('')
       setSlot('')
     }
   }, [canPark, plate, slot, onPark])
 
-  const handleRemove = useCallback(() => {
-    const ok = onRemove(plate)
+  const handleRemove = useCallback(async () => {
+    const ok = await onRemove(plate)
     if (ok) setPlate('')
   }, [plate, onRemove])
 

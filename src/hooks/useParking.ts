@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { ParkedCar } from '../types'
-import { TOTAL_SLOTS, HOURLY_RATE_FIRST_HOUR, HOURLY_RATE_ADDITIONAL, ONE_HOUR_MS, PLATE_REGEX } from '../types'
+import { TOTAL_SLOTS, PLATE_REGEX } from '../types'
+import { parkingApi } from '../services/api'
+
 export type MessageType = 'success' | 'error' | 'info'
 
 interface StatusMessage {
@@ -22,20 +24,8 @@ export function useParking() {
   const parkedCount = sortedCars.length
 
   useEffect(() => {
-    const data = localStorage.getItem('smartParkLotData')
-    if (data) {
-      try {
-        const loaded = JSON.parse(data)
-        if (Array.isArray(loaded) && loaded.length === TOTAL_SLOTS) {
-          setSlots(loaded)
-        }
-      } catch { /* ignore */ }
-    }
+    parkingApi.getLot().then(data => setSlots(data.slots)).catch(() => {})
   }, [])
-
-  useEffect(() => {
-    localStorage.setItem('smartParkLotData', JSON.stringify(slots))
-  }, [slots])
 
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000)
@@ -52,7 +42,16 @@ export function useParking() {
     setStatus({ text, type })
   }, [])
 
-  const parkCar = useCallback((plateNumber: string, slotInput?: string) => {
+  const refreshLot = useCallback(async () => {
+    try {
+      const data = await parkingApi.getLot()
+      setSlots(data.slots)
+    } catch {
+      showMessage('Failed to fetch parking data.', 'error')
+    }
+  }, [showMessage])
+
+  const parkCar = useCallback(async (plateNumber: string, slotInput?: string) => {
     const plate = plateNumber.trim().toUpperCase()
 
     if (!plate) {
@@ -65,47 +64,18 @@ export function useParking() {
       return false
     }
 
-    if (slots.some(car => car && car.plateNumber === plate)) {
-      showMessage(`Car "${plate}" is already parked.`, 'error')
+    try {
+      const result = await parkingApi.parkCar(plate, slotInput)
+      await refreshLot()
+      showMessage(result.message, 'success')
+      return true
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Failed to park car.', 'error')
       return false
     }
+  }, [showMessage, refreshLot])
 
-    if (freeSlots.length === 0) {
-      showMessage('Parking lot is full!', 'error')
-      return false
-    }
-
-    let chosenSlotIndex = -1
-
-    if (slotInput && slotInput.trim() !== '') {
-      const slotNum = parseInt(slotInput, 10)
-      if (isNaN(slotNum) || slotNum < 1 || slotNum > TOTAL_SLOTS) {
-        showMessage('Slot number must be between 1 and 15.', 'error')
-        return false
-      }
-      if (slots[slotNum - 1] !== null) {
-        showMessage(`Slot ${slotNum} is already occupied.`, 'error')
-        return false
-      }
-      chosenSlotIndex = slotNum - 1
-    } else {
-      chosenSlotIndex = slots.findIndex(s => s === null)
-    }
-
-    const newCar: ParkedCar = {
-      plateNumber: plate,
-      slotNumber: chosenSlotIndex + 1,
-      entryTime: Date.now(),
-    }
-
-    const newSlots = [...slots]
-    newSlots[chosenSlotIndex] = newCar
-    setSlots(newSlots)
-    showMessage(`Car "${plate}" parked in slot ${newCar.slotNumber}.`, 'success')
-    return true
-  }, [slots, freeSlots, showMessage])
-
-  const removeCar = useCallback((plateNumber: string) => {
+  const removeCar = useCallback(async (plateNumber: string) => {
     const plate = plateNumber.trim().toUpperCase()
 
     if (!plate) {
@@ -113,36 +83,26 @@ export function useParking() {
       return false
     }
 
-    const index = slots.findIndex(car => car && car.plateNumber === plate)
-    if (index === -1) {
-      showMessage(`Car "${plate}" not found.`, 'error')
+    try {
+      const result = await parkingApi.removeCar(plate)
+      await refreshLot()
+      showMessage(result.message, 'success')
+      return true
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Failed to remove car.', 'error')
       return false
     }
+  }, [showMessage, refreshLot])
 
-    const car = slots[index]!
-    const exitTime = Date.now()
-    const duration = exitTime - car.entryTime
-
-    let bill = HOURLY_RATE_FIRST_HOUR
-    const remaining = duration - ONE_HOUR_MS
-    if (remaining > 0) {
-      bill += Math.ceil(remaining / ONE_HOUR_MS) * HOURLY_RATE_ADDITIONAL
+  const clearAll = useCallback(async () => {
+    try {
+      const result = await parkingApi.clearAll()
+      await refreshLot()
+      showMessage(result.message, 'success')
+    } catch (err) {
+      showMessage(err instanceof Error ? err.message : 'Failed to clear lot.', 'error')
     }
-
-    const newSlots = [...slots]
-    newSlots[index] = null
-    setSlots(newSlots)
-    showMessage(
-      `Car "${plate}" removed. Time: ${formatDuration(duration)}. Bill: Rwf ${bill.toLocaleString()}.`,
-      'success'
-    )
-    return true
-  }, [slots, showMessage])
-
-  const clearAll = useCallback(() => {
-    setSlots(new Array(TOTAL_SLOTS).fill(null))
-    showMessage('All slots cleared.', 'success')
-  }, [showMessage])
+  }, [showMessage, refreshLot])
 
   return {
     slots,

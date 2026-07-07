@@ -1,29 +1,41 @@
-import type { ParkedCar, ParkResponse, RemoveResponse, ParkingLotState } from '../types'
+import type { ParkResponse, RemoveResponse, ParkingLotState } from '../types'
 
-const LOCAL_STORAGE_KEY = 'smartParkLotData'
+const BASE = '/api'
+
+async function request<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${url}`, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  })
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error(data.message || 'Request failed')
+  }
+  return data
+}
 
 export const parkingApi = {
   async getLot(): Promise<ParkingLotState> {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (data) {
-      return { slots: JSON.parse(data) }
-    }
-    return { slots: new Array(15).fill(null) }
+    return request<ParkingLotState>('/lot')
   },
 
-  async saveLot(slots: (ParkedCar | null)[]): Promise<void> {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(slots))
+  async parkCar(plateNumber: string, slotNumber?: string): Promise<ParkResponse> {
+    return request<ParkResponse>('/park', {
+      method: 'POST',
+      body: JSON.stringify({ plateNumber, slotNumber }),
+    })
   },
 
-  async parkCar(car: ParkedCar): Promise<ParkResponse> {
-    return { success: true, message: `Car "${car.plateNumber}" parked in slot ${car.slotNumber}.`, car }
-  },
-
-  async removeCar(plateNumber: string, bill: number, duration: number): Promise<RemoveResponse> {
-    return { success: true, message: `Car "${plateNumber}" removed. Bill: Rwf ${bill.toLocaleString()}.`, bill, duration }
+  async removeCar(plateNumber: string): Promise<RemoveResponse> {
+    return request<RemoveResponse>('/remove', {
+      method: 'DELETE',
+      body: JSON.stringify({ plateNumber }),
+    })
   },
 
   async clearAll(): Promise<{ success: boolean; message: string }> {
-    return { success: true, message: 'All slots cleared.' }
+    return request<{ success: boolean; message: string }>('/clear', {
+      method: 'DELETE',
+    })
   },
 }
