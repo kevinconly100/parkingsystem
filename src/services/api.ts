@@ -1,6 +1,8 @@
 import type { ParkResponse, RemoveResponse, ParkingLotState } from '../types'
 
-const BASE = '/api'
+const BASE = import.meta.env.DEV
+  ? '/api'
+  : 'https://parkingsystem-api.vercel.app/api'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${url}`, {
