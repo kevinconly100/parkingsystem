@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"node --watch ../parkingsystem-api/src/index.js\"",
+    "dev": "concurrently -k \"vite\" \"cd ../parkingsystem-api && node --watch src/index.js\"",
     "dev:frontend": "vite",
-    "dev:backend": "node --watch ../parkingsystem-api/src/index.js",
+    "dev:backend": "cd ../parkingsystem-api && node --watch src/index.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
