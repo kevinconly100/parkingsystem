@@ -19,20 +19,13 @@ export default function ConnectionStatus() {
     check()
     const id = setInterval(check, 5000)
 
-    return () => {
-      mounted = false
-      clearInterval(id)
-    }
+    return () => { mounted = false; clearInterval(id) }
   }, [])
 
   return (
-    <span className="flex items-center gap-1.5 text-xs">
-      <span
-        className={`inline-block w-2 h-2 rounded-full ${connected ? 'bg-green-400' : 'bg-red-500'}`}
-      />
-      <span className="text-gray-400">
-        API {connected ? 'connected' : 'disconnected'}
-      </span>
+    <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+      <span className={`inline-block w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-500'}`} />
+      {connected ? 'Connected' : 'Disconnected'}
     </span>
   )
 }
