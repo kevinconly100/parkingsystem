@@ -1,4 +1,5 @@
 import ThemeToggle from './components/ThemeToggle'
+import ConnectionStatus from './components/ConnectionStatus'
 import ParkingForm from './components/ParkingForm'
 import ParkingTable from './components/ParkingTable'
 import StatusMessage from './components/StatusMessage'
@@ -9,6 +10,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen p-2 sm:p-4 md:p-6 transition-all">
+      <div className="fixed top-2 left-2 sm:top-4 sm:left-6 z-50">
+        <ConnectionStatus />
+      </div>
       <ThemeToggle />
       <h1 className="text-2xl sm:text-3xl md:text-5xl text-center neon-glow mb-4 sm:mb-6">
         SmartPark

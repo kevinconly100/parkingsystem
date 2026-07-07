@@ -1,10 +1,12 @@
 {
-  "name": "vite-scaffold",
+  "name": "smartpark",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k \"vite\" \"node ../parkingsystem-api/src/index.js\"",
+    "dev:frontend": "vite",
+    "dev:backend": "node --watch ../parkingsystem-api/src/index.js",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
